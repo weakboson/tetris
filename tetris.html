@@ -4,6 +4,13 @@
     <title>tetris</title>
     <script type="text/javascript">
 // <![CDATA[
+Array.prototype.each = function(fn){
+  var result = [];
+  for(var i=0; i<this.length; i++){
+    result[i] = fn(this[i],i);
+  }
+  return result;
+};
 var RIGHT = 39;
 var LEFT  = 37;
 var DOWN  = 40;
@@ -42,24 +49,43 @@ var blocks = [
 ];  
 var block = blocks[Math.floor(Math.random() * blocks.length)];
 var posx=0, posy=0;
-var map,mapWidth=10,mapHeight=20;
+var mapHeight=20,mapWidth=10;
+var map = new Array(mapHeight).each(function(){
+  return new Array(mapWidth).each(function(){
+    return 0;
+  })
+});
 var load = function()
 {
   ctx = document.getElementById('target').getContext('2d');
-  map = [];
-  for(var y=0;y<mapHeight;y++){
-    map[y] = [];
-    for(var x=0;x<mapWidth;x++){
-      map[y][x]=0;
+  setInterval(function(){
+    ctx.clearRect(0,0,200,400);
+    paintMatrix(map,0,0,'rgb(128,0,0)');
+    paintMatrix(block,posx,posy,'rgb(255,0,0)');
+    if (check(block,map,posx,posy+1)) {
+      posy++;
+    } else {
+      mergeMatrix(map,block,posx,posy);
+      clearRow(map);
+      posx=0,posy=0;
+      block = blocks[Math.floor(Math.random() * blocks.length)];
     }
-  }
-  setInterval(paint,200);
+  },400);
 };
 var check = function(matrix, map, offsetx, offsety)
 {
   if (offsetx<0 || offsety<0 || offsety+matrix.length>mapHeight || offsetx+matrix[0].length>mapWidth) {
     return false;
   }
+  /*
+  matrix.each(function(y){
+    return matrix[y].each(function(x){
+      if(matrix[y][x] && map[y+offsety][x+offsetx]){
+        return false;
+      }
+    });
+  });
+  */
   for (var y=0; y<matrix.length; y++){
     for(var x=0; x<matrix[y].length; x++){
       if (matrix[y][x] && map[y+offsety][x+offsetx]){
@@ -82,6 +108,14 @@ var mergeMatrix = function(map,matrix,offsetx,offsety)
 var paintMatrix = function(matrix,offsetx,offsety,color)
 {
   ctx.fillStyle = color;
+  matrix.each(function(row, y){
+    row.each(function(val, x){
+      if(val){
+        ctx.fillRect((offsetx+x)*20,(offsety+y)*20,20,20);
+      }
+    });
+  });
+  /*
   for(var y=0; y<matrix.length; y++){
     for(var x=0; x<matrix[y].length; x++){
       if(matrix[y][x]===1){
@@ -89,6 +123,7 @@ var paintMatrix = function(matrix,offsetx,offsety,color)
       }
     }
   }
+  */
 };
 var rotate = function(matrix)
 {
@@ -105,6 +140,9 @@ var key = function(kc)
 {
   switch(kc) {
   case UP:
+    if(!check(rotate(block),map,posx,posy)){
+      return;
+    }
     block = rotate(block);
     break;
   case RIGHT:
@@ -148,20 +186,6 @@ var clearRow = function(map){
       }
       map.unshift(newRow);
     }
-  }
-};
-var paint = function()
-{
-  ctx.clearRect(0,0,200,400);
-  paintMatrix(map,0,0,'rgb(128,0,0)');
-  paintMatrix(block,posx,posy,'rgb(255,0,0)');
-  if (check(block,map,posx,posy+1)) {
-    posy++;
-  } else {
-    mergeMatrix(map,block,posx,posy);
-    clearRow(map);
-    posx=0,posy=0;
-    block = blocks[Math.floor(Math.random() * blocks.length)];
   }
 };
 // ]]>
