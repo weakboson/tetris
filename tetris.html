@@ -4,6 +4,10 @@
     <title>tetris</title>
     <script type="text/javascript">
 // <![CDATA[
+var RIGHT = 39;
+var LEFT  = 37;
+var DOWN  = 40;
+var UP    = 38;
 var ctx;
 var block = [
   [1,1],
@@ -59,6 +63,66 @@ var paintMatrix = function(matrix,offsetx,offsety,color)
     }
   }
 };
+var rotate = function(matrix)
+{
+  var rotated = [];
+  for(var x=0; x<matrix[0].length; x++){
+    rotated[x] = [];
+    for(var y=0; y<matrix.length; y++){
+      rotated[x][matrix.length-y-1] = matrix[y][x];
+    }
+  }
+  return rotated;
+};
+var key = function(kc)
+{
+  switch(kc) {
+  case UP:
+    block = rotate(block);
+    break;
+  case RIGHT:
+    if(!check(block,map,posx+1,posy)){
+      return;
+    }
+    posx+=1;
+    break;
+  case LEFT:
+    if(!check(block,map,posx-1,posy)){
+      return;
+    }
+    posx-=1;
+    break;
+  case DOWN:
+    if(!check(block,map,posx,posy+1)){
+      return;
+    }
+    posy+=1;
+    break;
+  default:
+    return;
+  }
+  ctx.clearRect(0,0,200,400);
+  paintMatrix(map,0,0,'rgb(128,0,0)');
+  paintMatrix(block,posx,posy,'rgb(255,0,0)');
+};
+var clearRow = function(map){
+  for(var y=0; y<mapHeight; y++){
+    var full=true;
+    for(var x=0; x<mapWidth; x++){
+      if(!map[y][x]){
+        full=false;
+      }
+    }
+    if (full) {
+      map.splice(y,1);
+      var newRow = [];
+      for(var i=0;i<mapWidth;i++){
+        newRow[i] = 0;
+      }
+      map.unshift(newRow);
+    }
+  }
+};
 var paint = function()
 {
   ctx.clearRect(0,0,200,400);
@@ -68,13 +132,14 @@ var paint = function()
     posy++;
   } else {
     mergeMatrix(map,block,posx,posy);
+    clearRow(map);
     posx=0,posy=0;
   }
 };
 // ]]>
     </script>
   </head>
-  <body onload="load()">
+  <body onload="load()" onkeypress="javascript:key(event.keyCode);">
     <canvas id="target" style="border:5px solid gray" width="200" height="400"></canvas>
   </body>
 </html>
