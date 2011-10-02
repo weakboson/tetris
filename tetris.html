@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
   <head>
-    <title>calc</title>
+    <title>tetris</title>
     <script type="text/javascript">
 // <![CDATA[
 var ctx;
@@ -24,6 +24,30 @@ var load = function()
   }
   setInterval(paint,200);
 };
+var check = function(matrix, map, offsetx, offsety)
+{
+  if (offsetx<0 || offsety<0 || offsety+matrix.length>mapHeight || offsetx+matrix[0].length>mapWidth) {
+    return false;
+  }
+  for (var y=0; y<matrix.length; y++){
+    for(var x=0; x<matrix[y].length; x++){
+      if (matrix[y][x] && map[y+offsety][x+offsetx]){
+        return false;
+      }
+    }
+  }
+  return true;
+};
+var mergeMatrix = function(map,matrix,offsetx,offsety)
+{
+  for(var y=0; y<matrix.length; y++){
+    for(var x=0; x<matrix[y].length; x++){
+      if (matrix[y][x]){
+        map[offsety+y][offsetx+x]=1;
+      }
+    }
+  }
+};
 var paintMatrix = function(matrix,offsetx,offsety,color)
 {
   ctx.fillStyle = color;
@@ -38,8 +62,14 @@ var paintMatrix = function(matrix,offsetx,offsety,color)
 var paint = function()
 {
   ctx.clearRect(0,0,200,400);
-  paintMatrix(map,0,0,'rgb(128,128,128)');
-  paintMatrix(block,posx,posy++,'rgb(255,0,0)');
+  paintMatrix(map,0,0,'rgb(128,0,0)');
+  paintMatrix(block,posx,posy,'rgb(255,0,0)');
+  if (check(block,map,posx,posy+1)) {
+    posy++;
+  } else {
+    mergeMatrix(map,block,posx,posy);
+    posx=0,posy=0;
+  }
 };
 // ]]>
     </script>
